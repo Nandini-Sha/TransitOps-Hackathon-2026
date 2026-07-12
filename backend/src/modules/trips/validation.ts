@@ -19,6 +19,11 @@ export const completeTripSchema = z.object({
   fuelCost: z.number().nonnegative().optional(),
 });
 
+export const tripSortFields = ["tripCode", "plannedDistance", "createdAt", "dispatchedAt", "completedAt"] as const;
+
 export const listTripsQuerySchema = z.object({
   status: z.nativeEnum(TripStatus).optional(),
+  search: z.string().min(1).optional(),
+  sortBy: z.enum(tripSortFields).default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
 });

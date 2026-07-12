@@ -13,8 +13,13 @@ export const createVehicleSchema = z.object({
 
 export const updateVehicleSchema = createVehicleSchema.partial();
 
+export const vehicleSortFields = ["regNumber", "name", "odometer", "acquisitionCost", "createdAt"] as const;
+
 export const listVehiclesQuerySchema = z.object({
   status: z.nativeEnum(VehicleStatus).optional(),
   type: z.string().optional(),
   region: z.string().optional(),
+  search: z.string().min(1).optional(),
+  sortBy: z.enum(vehicleSortFields).default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
 });

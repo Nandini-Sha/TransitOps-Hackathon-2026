@@ -1,6 +1,7 @@
 import { prisma } from "../../lib/prisma";
-import { TripStatus } from "../../../generated/prisma";
+import { Prisma, TripStatus } from "../../../generated/prisma";
 import { ConflictError, NotFoundError } from "../../utils/errors";
+import { tripSortFields } from "./validation";
 
 function generateTripCode() {
   const stamp = new Date().toISOString().slice(2, 10).replace(/-/g, "");
@@ -8,11 +9,29 @@ function generateTripCode() {
   return `TRIP-${stamp}-${seq}`;
 }
 
-export async function listTrips(filters: { status?: TripStatus }) {
+interface ListFilters {
+  status?: TripStatus;
+  search?: string;
+  sortBy: (typeof tripSortFields)[number];
+  sortOrder: "asc" | "desc";
+}
+
+export async function listTrips({ status, search, sortBy, sortOrder }: ListFilters) {
+  const where: Prisma.TripWhereInput = {
+    ...(status && { status }),
+    ...(search && {
+      OR: [
+        { tripCode: { contains: search, mode: "insensitive" } },
+        { source: { contains: search, mode: "insensitive" } },
+        { destination: { contains: search, mode: "insensitive" } },
+      ],
+    }),
+  };
+
   return prisma.trip.findMany({
-    where: filters,
+    where,
     include: { vehicle: true, driver: true },
-    orderBy: { createdAt: "desc" },
+    orderBy: { [sortBy]: sortOrder },
   });
 }
 

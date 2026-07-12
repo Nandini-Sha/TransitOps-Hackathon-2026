@@ -1,8 +1,30 @@
 import { prisma } from "../../lib/prisma";
+import { Prisma } from "../../../generated/prisma";
 import { NotFoundError, ConflictError } from "../../utils/errors";
+import { driverSortFields } from "./validation";
 
-export async function listDrivers() {
-  return prisma.driverProfile.findMany({ orderBy: { createdAt: "desc" } });
+interface ListFilters {
+  search?: string;
+  sortBy: (typeof driverSortFields)[number];
+  sortOrder: "asc" | "desc";
+}
+
+export async function listDrivers({ search, sortBy, sortOrder }: ListFilters) {
+  const where: Prisma.DriverProfileWhereInput = search
+    ? {
+        OR: [
+          { name: { contains: search, mode: "insensitive" } },
+          { licenseNumber: { contains: search, mode: "insensitive" } },
+          { licenseCategory: { contains: search, mode: "insensitive" } },
+          { contact: { contains: search, mode: "insensitive" } },
+        ],
+      }
+    : {};
+
+  return prisma.driverProfile.findMany({
+    where,
+    orderBy: { [sortBy]: sortOrder },
+  });
 }
 
 export async function listAvailableDrivers() {

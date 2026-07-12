@@ -1,17 +1,34 @@
 import { prisma } from "../../lib/prisma";
-import { VehicleStatus } from "../../../generated/prisma";
+import { Prisma, VehicleStatus } from "../../../generated/prisma";
 import { ConflictError, NotFoundError } from "../../utils/errors";
+import { vehicleSortFields } from "./validation";
 
 interface ListFilters {
   status?: VehicleStatus;
   type?: string;
   region?: string;
+  search?: string;
+  sortBy: (typeof vehicleSortFields)[number];
+  sortOrder: "asc" | "desc";
 }
 
-export async function listVehicles(filters: ListFilters) {
+export async function listVehicles({ status, type, region, search, sortBy, sortOrder }: ListFilters) {
+  const where: Prisma.VehicleWhereInput = {
+    ...(status && { status }),
+    ...(type && { type }),
+    ...(region && { region }),
+    ...(search && {
+      OR: [
+        { regNumber: { contains: search, mode: "insensitive" } },
+        { name: { contains: search, mode: "insensitive" } },
+        { type: { contains: search, mode: "insensitive" } },
+      ],
+    }),
+  };
+
   return prisma.vehicle.findMany({
-    where: filters,
-    orderBy: { createdAt: "desc" },
+    where,
+    orderBy: { [sortBy]: sortOrder },
   });
 }
 

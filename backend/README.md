@@ -40,7 +40,7 @@ Status enum: `AVAILABLE | ON_TRIP | IN_SHOP | RETIRED`
 
 | Method | Path | Roles | Notes |
 |---|---|---|---|
-| GET | `/` | FM, DRIVER, FA | query: `?status=&type=&region=` |
+| GET | `/` | FM, DRIVER, FA | query: `?status=&type=&region=&search=&sortBy=&sortOrder=` — `search` matches regNumber/name/type; `sortBy` one of `regNumber\|name\|odometer\|acquisitionCost\|createdAt` (default `createdAt`); `sortOrder` `asc\|desc` (default `desc`) |
 | GET | `/available` | FM, DRIVER | only `AVAILABLE` vehicles — use this to populate the trip-creation vehicle picker |
 | GET | `/:id` | FM, DRIVER, FA | |
 | POST | `/` | FM | `{ regNumber, name, type, maxLoadCapacity, odometer, acquisitionCost, region }` — `regNumber` must be unique (409 on dupe) |
@@ -53,7 +53,7 @@ Status enum: `AVAILABLE | ON_TRIP | OFF_DUTY | SUSPENDED`
 
 | Method | Path | Roles | Notes |
 |---|---|---|---|
-| GET | `/` | FM, SO | full profiles |
+| GET | `/` | FM, SO | full profiles. query: `?search=&sortBy=&sortOrder=` — `search` matches name/licenseNumber/licenseCategory/contact; `sortBy` one of `name\|licenseExpiry\|safetyScore\|createdAt` (default `createdAt`); `sortOrder` `asc\|desc` (default `desc`) |
 | GET | `/available` | FM, SO, DRIVER | only `AVAILABLE` + non-expired license; returns narrow fields `{id, name, licenseCategory}` — use for the trip-creation driver picker |
 | GET | `/:id` | FM, SO | |
 | POST | `/` | FM, SO | `{ name, licenseNumber, licenseCategory, licenseExpiry, contact, safetyScore }` — `licenseNumber` unique |
@@ -66,7 +66,7 @@ Status enum/lifecycle: `DRAFT → DISPATCHED → COMPLETED` or `→ CANCELLED` (
 
 | Method | Path | Roles | Notes |
 |---|---|---|---|
-| GET | `/` | DRIVER, SO | query: `?status=` |
+| GET | `/` | DRIVER, SO | query: `?status=&search=&sortBy=&sortOrder=` — `search` matches tripCode/source/destination; `sortBy` one of `tripCode\|plannedDistance\|createdAt\|dispatchedAt\|completedAt` (default `createdAt`); `sortOrder` `asc\|desc` (default `desc`) |
 | GET | `/:id` | DRIVER, SO | |
 | POST | `/` | DRIVER | `{ source, destination, vehicleId, driverId, cargoWeight, plannedDistance, revenue? }` — validates vehicle/driver are `AVAILABLE`, cargo ≤ capacity, license not expired. Creates as `DRAFT`. |
 | PATCH | `/:id` | DRIVER | edit — only while `DRAFT` |

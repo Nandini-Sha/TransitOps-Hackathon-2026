@@ -76,6 +76,8 @@ model Vehicle {
   @@index([status])
   @@index([region])
   @@index([type])
+  @@index([name])
+  @@index([createdAt])
 }
 
 model DriverProfile {
@@ -93,6 +95,9 @@ model DriverProfile {
   trips           Trip[]
 
   @@index([status])
+  @@index([name])
+  @@index([licenseExpiry])
+  @@index([createdAt])
 }
 
 model Trip {
@@ -121,6 +126,7 @@ model Trip {
   @@index([status])
   @@index([vehicleId])
   @@index([driverId])
+  @@index([createdAt])
 }
 
 model MaintenanceLog {

@@ -14,3 +14,11 @@ export const updateDriverSchema = createDriverSchema.partial();
 export const updateDriverStatusSchema = z.object({
   status: z.enum(["AVAILABLE", "OFF_DUTY", "SUSPENDED"]),
 });
+
+export const driverSortFields = ["name", "licenseExpiry", "safetyScore", "createdAt"] as const;
+
+export const listDriversQuerySchema = z.object({
+  search: z.string().min(1).optional(),
+  sortBy: z.enum(driverSortFields).default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+});

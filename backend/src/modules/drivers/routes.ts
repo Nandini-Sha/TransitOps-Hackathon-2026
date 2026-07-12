@@ -2,7 +2,12 @@ import { Router } from "express";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { requireAuth, requireRole } from "../../middleware/auth";
 import * as driversService from "./service";
-import { createDriverSchema, updateDriverSchema, updateDriverStatusSchema } from "./validation";
+import {
+  createDriverSchema,
+  updateDriverSchema,
+  updateDriverStatusSchema,
+  listDriversQuerySchema,
+} from "./validation";
 
 const router = Router();
 
@@ -11,8 +16,9 @@ router.use(requireAuth);
 router.get(
   "/",
   requireRole("FLEET_MANAGER", "SAFETY_OFFICER"),
-  asyncHandler(async (_req, res) => {
-    res.json(await driversService.listDrivers());
+  asyncHandler(async (req, res) => {
+    const filters = listDriversQuerySchema.parse(req.query);
+    res.json(await driversService.listDrivers(filters));
   })
 );
 
