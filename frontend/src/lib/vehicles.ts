@@ -1,3 +1,5 @@
+import { VehicleStatus } from "./enums";
+
 export interface Vehicle {
   id: string;
   regNumber: string;
@@ -7,7 +9,7 @@ export interface Vehicle {
   odometer: number;
   acquisitionCost: number;
   region: string;
-  status: "AVAILABLE" | "ON_TRIP" | "IN_SHOP" | "RETIRED";
+  status: VehicleStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -29,6 +31,7 @@ export interface CreateVehicleInput {
   odometer: number;
   acquisitionCost: number;
   region: string;
+  status?: VehicleStatus;
 }
 
 export async function getVehicles(filters?: VehicleFilters): Promise<Vehicle[]> {
@@ -62,4 +65,41 @@ export async function createVehicle(data: CreateVehicleInput): Promise<Vehicle> 
     throw new Error(errorData.error || `Error: ${response.statusText}`);
   }
   return response.json();
+}
+
+export async function updateVehicle(id: string, data: Partial<CreateVehicleInput>): Promise<Vehicle> {
+  const response = await fetch(`/api/vehicles/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+    credentials: "include",
+  });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `Error: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+export async function retireVehicle(id: string): Promise<Vehicle> {
+  const response = await fetch(`/api/vehicles/${id}/retire`, {
+    method: "PATCH",
+    credentials: "include",
+  });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `Error: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+export async function deleteVehicle(id: string): Promise<void> {
+  const response = await fetch(`/api/vehicles/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `Error: ${response.statusText}`);
+  }
 }

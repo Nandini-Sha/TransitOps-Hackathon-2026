@@ -56,6 +56,8 @@ export async function getSummary(filters: Filters) {
     }
     return {
       id: t.tripCode,
+      realId: t.id,
+      rawStatus: t.status,
       vehicle: t.vehicle ? t.vehicle.regNumber : "--",
       driver: t.driver ? t.driver.name : "--",
       status: uiStatus,

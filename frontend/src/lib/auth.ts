@@ -1,10 +1,10 @@
-import type { UserRole } from "../components/auth/RoleSelector";
+import { Role } from "./enums";
 
 export interface AuthUser {
   id: string;
   email: string;
   name: string;
-  role: UserRole;
+  role: Role;
 }
 
 async function parseError(response: Response) {
@@ -28,7 +28,7 @@ export async function login(email: string, password: string) {
   return (await response.json()) as AuthUser;
 }
 
-export async function signup(email: string, password: string, name: string, role: UserRole) {
+export async function signup(email: string, password: string, name: string, role: Role) {
   const response = await fetch("/api/auth/signup", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

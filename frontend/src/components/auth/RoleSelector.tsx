@@ -1,35 +1,31 @@
-export type UserRole =
-  | "FLEET_MANAGER"
-  | "DRIVER"
-  | "SAFETY_OFFICER"
-  | "FINANCIAL_ANALYST";
+import { Role } from "../../lib/enums";
 
 export const roles: Array<{
-  value: UserRole;
+  value: Role;
   label: string;
   access: string;
   demoEmail: string;
 }> = [
   {
-    value: "FLEET_MANAGER",
+    value: Role.FLEET_MANAGER,
     label: "Fleet Manager",
     access: "Fleet, maintenance, dashboard",
     demoEmail: "fleet.manager@transitops.demo",
   },
   {
-    value: "DRIVER",
+    value: Role.DRIVER,
     label: "Dispatcher",
     access: "Trips and dispatch workflow",
     demoEmail: "driver@transitops.demo",
   },
   {
-    value: "SAFETY_OFFICER",
+    value: Role.SAFETY_OFFICER,
     label: "Safety Officer",
     access: "Drivers, compliance, trip review",
     demoEmail: "safety.officer@transitops.demo",
   },
   {
-    value: "FINANCIAL_ANALYST",
+    value: Role.FINANCIAL_ANALYST,
     label: "Financial Analyst",
     access: "Fuel, expenses, analytics",
     demoEmail: "finance@transitops.demo",
@@ -37,8 +33,8 @@ export const roles: Array<{
 ];
 
 interface RoleSelectorProps {
-  value: UserRole;
-  onChange: (role: UserRole) => void;
+  value: Role;
+  onChange: (role: Role) => void;
 }
 
 export default function RoleSelector({ value, onChange }: RoleSelectorProps) {
@@ -49,7 +45,7 @@ export default function RoleSelector({ value, onChange }: RoleSelectorProps) {
       </span>
       <select
         value={value}
-        onChange={(event) => onChange(event.target.value as UserRole)}
+        onChange={(event) => onChange(event.target.value as Role)}
         className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/30 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
       >
         {roles.map((role) => (

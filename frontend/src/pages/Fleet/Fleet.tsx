@@ -1,28 +1,33 @@
 import { useEffect, useState } from "react";
 import { getVehicles, type Vehicle } from "../../lib/vehicles";
+import { VehicleStatus } from "../../lib/enums";
 import AddVehicleModal from "./AddVehicleModal";
+import EditVehicleModal from "./EditVehicleModal";
 
 const statusColor: Record<string, string> = {
-  AVAILABLE: "bg-green-500 text-slate-950",
-  ON_TRIP: "bg-blue-500 text-white",
-  IN_SHOP: "bg-orange-500 text-white",
-  RETIRED: "bg-red-500 text-white",
+  [VehicleStatus.AVAILABLE]: "bg-green-500 text-slate-950",
+  [VehicleStatus.ON_TRIP]: "bg-blue-500 text-white",
+  [VehicleStatus.IN_SHOP]: "bg-orange-500 text-white",
+  [VehicleStatus.RETIRED]: "bg-red-500 text-white",
 };
 
-export default function Fleet() {
+export default function Fleet({ searchQuery }: { searchQuery: string }) {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [vehicleType, setVehicleType] = useState("All");
   const [status, setStatus] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
+
+  const [sortBy, setSortBy] = useState("regNumber");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
 
   function fetchVehicles() {
     setLoading(true);
-    getVehicles({ type: vehicleType, status, search: searchQuery })
+    getVehicles({ type: vehicleType, status, search: searchQuery, sortBy, sortOrder })
       .then(setVehicles)
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load vehicles"))
       .finally(() => setLoading(false));
@@ -30,20 +35,22 @@ export default function Fleet() {
 
   useEffect(() => {
     fetchVehicles();
-  }, [vehicleType, status, searchQuery]);
+  }, [vehicleType, status, searchQuery, sortBy, sortOrder]);
+
+  function handleSort(field: string) {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(field);
+      setSortOrder("asc");
+    }
+  }
 
   return (
     <div className="space-y-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-          <input
-            type="search"
-            placeholder="Search reg. no..."
-            title="Search by registration number, name/model, or type"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9 w-full rounded-md border border-slate-300 bg-transparent px-3 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 sm:max-w-[200px]"
-          />
+
           <select
             value={vehicleType}
             onChange={(e) => setVehicleType(e.target.value)}
@@ -88,13 +95,34 @@ export default function Fleet() {
           <table className="w-full min-w-[800px] text-left text-sm">
             <thead className="border-b border-slate-200 uppercase text-slate-500 dark:border-slate-800 dark:text-slate-400">
               <tr>
-                <th className="py-3 font-semibold text-[10px]">REG. NO. (UNIQUE)</th>
-                <th className="py-3 font-semibold text-[10px]">NAME/MODEL</th>
+                <th 
+                  className="py-3 font-semibold text-[10px] cursor-pointer hover:text-amber-600 transition-colors" 
+                  onClick={() => handleSort("regNumber")}
+                >
+                  REG. NO. (UNIQUE) {sortBy === "regNumber" && (sortOrder === "asc" ? "↑" : "↓")}
+                </th>
+                <th 
+                  className="py-3 font-semibold text-[10px] cursor-pointer hover:text-amber-600 transition-colors"
+                  onClick={() => handleSort("name")}
+                >
+                  NAME/MODEL {sortBy === "name" && (sortOrder === "asc" ? "↑" : "↓")}
+                </th>
                 <th className="py-3 font-semibold text-[10px]">TYPE</th>
                 <th className="py-3 font-semibold text-[10px]">CAPACITY</th>
-                <th className="py-3 font-semibold text-[10px]">ODOMETER</th>
-                <th className="py-3 font-semibold text-[10px]">ACQ. COST</th>
+                <th 
+                  className="py-3 font-semibold text-[10px] cursor-pointer hover:text-amber-600 transition-colors"
+                  onClick={() => handleSort("odometer")}
+                >
+                  ODOMETER {sortBy === "odometer" && (sortOrder === "asc" ? "↑" : "↓")}
+                </th>
+                <th 
+                  className="py-3 font-semibold text-[10px] cursor-pointer hover:text-amber-600 transition-colors"
+                  onClick={() => handleSort("acquisitionCost")}
+                >
+                  ACQ. COST {sortBy === "acquisitionCost" && (sortOrder === "asc" ? "↑" : "↓")}
+                </th>
                 <th className="py-3 font-semibold text-[10px]">STATUS</th>
+                <th className="py-3 font-semibold text-[10px] text-right">ACTIONS</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
@@ -107,13 +135,40 @@ export default function Fleet() {
                   <td className="py-4">{vehicle.odometer.toLocaleString()}</td>
                   <td className="py-4">{vehicle.acquisitionCost.toLocaleString()}</td>
                   <td className="py-4">
-                    <span
-                      className={`inline-flex min-w-24 items-center justify-center rounded px-2.5 py-1 text-xs font-semibold shadow-sm ${
+                    <select
+                      value={vehicle.status}
+                      onChange={async (e) => {
+                        const newStatus = e.target.value as VehicleStatus;
+                        try {
+                          await fetch(`/api/vehicles/${vehicle.id}`, {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ status: newStatus }),
+                            credentials: "include",
+                          });
+                          fetchVehicles();
+                        } catch (err) {
+                          alert("Failed to update status");
+                        }
+                      }}
+                      className={`inline-flex min-w-28 cursor-pointer appearance-none outline-none items-center justify-center rounded px-2.5 py-1 text-center text-xs font-semibold shadow-sm ${
                         statusColor[vehicle.status] || "bg-slate-400 text-white"
                       }`}
                     >
-                      {vehicle.status.replace("_", " ")}
-                    </span>
+                      <option value="AVAILABLE" className="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-200">Available</option>
+                      <option value="ON_TRIP" className="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-200">On Trip</option>
+                      <option value="IN_SHOP" className="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-200">In Shop</option>
+                      <option value="RETIRED" className="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-200">Retired</option>
+                    </select>
+                  </td>
+                  <td className="py-4 text-right">
+                    <button
+                      type="button"
+                      onClick={() => setEditingVehicle(vehicle)}
+                      className="text-amber-600 hover:underline dark:text-amber-500 font-medium"
+                    >
+                      Edit
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -135,6 +190,13 @@ export default function Fleet() {
       <AddVehicleModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
+        onSuccess={fetchVehicles}
+      />
+
+      <EditVehicleModal
+        isOpen={editingVehicle !== null}
+        vehicle={editingVehicle}
+        onClose={() => setEditingVehicle(null)}
         onSuccess={fetchVehicles}
       />
     </div>

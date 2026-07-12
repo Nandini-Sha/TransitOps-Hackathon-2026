@@ -1,7 +1,8 @@
 import { FormEvent, useState } from "react";
 import { signup } from "../../lib/auth";
 import type { AuthUser } from "../../lib/auth";
-import RoleSelector, { type UserRole } from "./RoleSelector";
+import { Role } from "../../lib/enums";
+import RoleSelector from "./RoleSelector";
 
 interface SignupFormProps {
   onAuthenticated: (user: AuthUser) => void;
@@ -11,7 +12,7 @@ export default function SignupForm({ onAuthenticated }: SignupFormProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<UserRole>("FLEET_MANAGER");
+  const [role, setRole] = useState<Role>(Role.FLEET_MANAGER);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 

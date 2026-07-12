@@ -11,7 +11,9 @@ export const createVehicleSchema = z.object({
   region: z.string().min(1),
 });
 
-export const updateVehicleSchema = createVehicleSchema.partial();
+export const updateVehicleSchema = createVehicleSchema.partial().extend({
+  status: z.nativeEnum(VehicleStatus).optional(),
+});
 
 export const vehicleSortFields = ["regNumber", "name", "odometer", "acquisitionCost", "createdAt"] as const;
 

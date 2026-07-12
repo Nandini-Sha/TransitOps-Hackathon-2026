@@ -2,6 +2,8 @@ export interface DashboardSummary {
   kpis: Array<{ label: string; value: string; accent: string }>;
   recentTrips: Array<{
     id: string;
+    realId: string;
+    rawStatus: "DRAFT" | "DISPATCHED" | "COMPLETED" | "CANCELLED";
     vehicle: string;
     driver: string;
     status: string;

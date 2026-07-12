@@ -69,3 +69,10 @@ export async function retireVehicle(id: string) {
   }
   return prisma.vehicle.update({ where: { id }, data: { status: "RETIRED" } });
 }
+
+export async function deleteVehicle(id: string) {
+  await getVehicle(id);
+  // Using a transaction to delete dependent records if they exist (or relying on Prisma to throw if not cascaded)
+  // We'll just delete the vehicle. If there are dependent trips, Prisma will throw a constraint error.
+  return prisma.vehicle.delete({ where: { id } });
+}

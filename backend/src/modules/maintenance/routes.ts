@@ -11,8 +11,9 @@ router.use(requireRole("FLEET_MANAGER"));
 
 router.get(
   "/",
-  asyncHandler(async (_req, res) => {
-    res.json(await maintenanceService.listMaintenance());
+  asyncHandler(async (req, res) => {
+    const search = req.query.search as string | undefined;
+    res.json(await maintenanceService.listMaintenance(search));
   })
 );
 

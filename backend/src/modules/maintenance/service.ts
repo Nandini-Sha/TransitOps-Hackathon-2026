@@ -1,8 +1,19 @@
 import { prisma } from "../../lib/prisma";
 import { ConflictError, NotFoundError } from "../../utils/errors";
 
-export async function listMaintenance() {
+export async function listMaintenance(search?: string) {
+  const where = search
+    ? {
+        OR: [
+          { serviceType: { contains: search, mode: "insensitive" as const } },
+          { vehicle: { regNumber: { contains: search, mode: "insensitive" as const } } },
+          { vehicle: { name: { contains: search, mode: "insensitive" as const } } },
+        ],
+      }
+    : {};
+
   return prisma.maintenanceLog.findMany({
+    where,
     include: { vehicle: true },
     orderBy: { date: "desc" },
   });

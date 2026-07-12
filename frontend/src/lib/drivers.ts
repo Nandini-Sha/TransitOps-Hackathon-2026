@@ -58,6 +58,17 @@ export async function getDrivers(filters?: DriverFilters): Promise<Driver[]> {
   return response.json();
 }
 
+export async function getAvailableDrivers(): Promise<Pick<Driver, "id" | "name" | "licenseCategory">[]> {
+  const response = await fetch("/api/drivers/available", {
+    credentials: "include",
+  });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `Error: ${response.statusText}`);
+  }
+  return response.json();
+}
+
 export async function createDriver(data: CreateDriverInput): Promise<Driver> {
   const response = await fetch("/api/drivers", {
     method: "POST",

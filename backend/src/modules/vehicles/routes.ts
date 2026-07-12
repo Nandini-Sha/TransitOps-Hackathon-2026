@@ -59,4 +59,12 @@ router.patch(
   })
 );
 
+router.delete(
+  "/:id",
+  requireRole("FLEET_MANAGER"),
+  asyncHandler(async (req, res) => {
+    res.json(await vehiclesService.deleteVehicle(req.params.id));
+  })
+);
+
 export default router;

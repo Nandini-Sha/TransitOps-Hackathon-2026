@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import type { AuthUser } from "../../lib/auth";
 import { getDashboardSummary, type DashboardSummary } from "../../lib/dashboard";
+import { dispatchTrip, completeTrip, cancelTrip } from "../../lib/trips";
 import Fleet from "../Fleet/Fleet";
 import Drivers from "../Drivers/Drivers";
 import Compliance from "../Drivers/Compliance";
+import Maintenance from "../Maintenance/Maintenance";
+import Trips from "../Trips/Trips";
 
 interface DashboardProps {
   user: AuthUser;
@@ -49,15 +52,43 @@ export default function Dashboard({
   const [region, setRegion] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Complete Trip Modal State
+  const [completingTripId, setCompletingTripId] = useState<string | null>(null);
+  const [finalOdometer, setFinalOdometer] = useState<number | "">("");
+  const [fuelConsumed, setFuelConsumed] = useState<number | "">("");
+
+  function fetchDashboard() {
+    setLoading(true);
+    getDashboardSummary({ type: vehicleType, status, region, search: searchQuery })
+      .then(setData)
+      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load"))
+      .finally(() => setLoading(false));
+  }
+
   useEffect(() => {
     if (activeTab === "Dashboard") {
-      setLoading(true);
-      getDashboardSummary({ type: vehicleType, status, region, search: searchQuery })
-        .then(setData)
-        .catch((err) => setError(err instanceof Error ? err.message : "Failed to load"))
-        .finally(() => setLoading(false));
+      fetchDashboard();
     }
   }, [activeTab, vehicleType, status, region, searchQuery]);
+
+  async function handleCompleteSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!completingTripId || finalOdometer === "" || fuelConsumed === "") return;
+    setLoading(true);
+    try {
+      await completeTrip(completingTripId, {
+        finalOdometer: Number(finalOdometer),
+        fuelConsumed: Number(fuelConsumed),
+      });
+      setCompletingTripId(null);
+      setFinalOdometer("");
+      setFuelConsumed("");
+      fetchDashboard();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to complete trip");
+      setLoading(false);
+    }
+  }
 
   return (
     <main className="min-h-screen bg-slate-100 p-4 text-slate-950 transition-colors dark:bg-[#111111] dark:text-slate-100">
@@ -98,18 +129,14 @@ export default function Dashboard({
 
         <section className="min-w-0">
           <header className="flex flex-col gap-3 border-b border-slate-300 px-4 py-3 dark:border-slate-700 md:flex-row md:items-center md:justify-between">
-            {activeTab === "Dashboard" ? (
-              <input
-                type="search"
-                placeholder="Search trips or drivers..."
-                title="Search by trip code, driver name, or vehicle registration number"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-[#111111] md:max-w-xs"
-              />
-            ) : (
-              <span />
-            )}
+            <input
+              type="search"
+              placeholder={activeTab === "Dashboard" ? "Search trips or drivers..." : activeTab === "Fleet" ? "Search reg. no..." : activeTab === "Maintenance" ? "Search maintenance logs..." : activeTab === "Trips" ? "Search trips..." : "Search..."}
+              title={activeTab === "Fleet" ? "Search by registration number, name/model, or type" : activeTab === "Dashboard" ? "Search by trip code, driver name, or vehicle registration number" : undefined}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-[#111111] md:max-w-xs"
+            />
             <div className="flex items-center justify-between gap-3 text-xs">
               <span className="truncate text-slate-600 dark:text-slate-300">{user.name}</span>
               <button
@@ -124,11 +151,15 @@ export default function Dashboard({
 
           <div className="space-y-6 p-4">
             {activeTab === "Fleet" ? (
-              <Fleet />
+              <Fleet searchQuery={searchQuery} />
             ) : activeTab === "Drivers" ? (
               <Drivers />
             ) : activeTab === "Compliance" ? (
               <Compliance />
+            ) : activeTab === "Maintenance" ? (
+              <Maintenance searchQuery={searchQuery} />
+            ) : activeTab === "Trips" ? (
+              <Trips searchQuery={searchQuery} />
             ) : activeTab !== "Dashboard" ? (
               <div className="flex h-64 flex-col items-center justify-center text-slate-500">
                 <p className="text-lg font-semibold">{activeTab}</p>
@@ -223,11 +254,39 @@ export default function Dashboard({
                           <td className="py-3">{trip.vehicle}</td>
                           <td className="py-3">{trip.driver}</td>
                           <td className="py-3">
-                            <span
-                              className={`inline-flex min-w-24 justify-center rounded px-2 py-1 font-semibold ${statusColor[trip.status] || "bg-slate-400"}`}
+                            <select
+                              value={trip.rawStatus}
+                              onChange={async (e) => {
+                                const newStatus = e.target.value;
+                                if (newStatus === trip.rawStatus) return;
+                                
+                                if (newStatus === "COMPLETED") {
+                                  setCompletingTripId(trip.realId);
+                                  return;
+                                }
+                                
+                                try {
+                                  if (newStatus === "DISPATCHED") {
+                                    if (!confirm("Dispatch this trip?")) return;
+                                    await dispatchTrip(trip.realId);
+                                  } else if (newStatus === "CANCELLED") {
+                                    if (!confirm("Cancel this trip?")) return;
+                                    await cancelTrip(trip.realId);
+                                  }
+                                  fetchDashboard();
+                                } catch (err) {
+                                  alert(err instanceof Error ? err.message : "Failed to update trip");
+                                }
+                              }}
+                              className={`inline-flex min-w-28 cursor-pointer appearance-none outline-none items-center justify-center rounded px-2.5 py-1 text-center text-xs font-semibold shadow-sm ${
+                                statusColor[trip.status] || "bg-slate-400 text-slate-900"
+                              }`}
                             >
-                              {trip.status}
-                            </span>
+                              <option value="DRAFT" disabled className="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-200">Draft</option>
+                              <option value="DISPATCHED" disabled={trip.rawStatus === "COMPLETED" || trip.rawStatus === "CANCELLED"} className="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-200">Dispatched</option>
+                              <option value="COMPLETED" disabled={trip.rawStatus !== "DISPATCHED"} className="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-200">Completed</option>
+                              <option value="CANCELLED" disabled={trip.rawStatus === "COMPLETED" || trip.rawStatus === "CANCELLED"} className="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-200">Cancelled</option>
+                            </select>
                           </td>
                           <td className="py-3 text-right">{trip.eta}</td>
                         </tr>
@@ -258,6 +317,57 @@ export default function Dashboard({
           </div>
         </section>
       </div>
+
+      {/* Complete Trip Modal */}
+      {completingTripId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-lg border border-slate-300 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-[#111111]">
+            <h2 className="mb-4 text-lg font-semibold dark:text-white">Complete Trip</h2>
+            <form onSubmit={handleCompleteSubmit} className="space-y-4">
+              <label className="block space-y-1">
+                <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Final Odometer</span>
+                <input
+                  required
+                  type="number"
+                  min={0}
+                  value={finalOdometer}
+                  onChange={(e) => setFinalOdometer(e.target.value ? Number(e.target.value) : "")}
+                  className="w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-amber-500 dark:border-slate-700 dark:text-white"
+                />
+              </label>
+              <label className="block space-y-1">
+                <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Fuel Consumed (Liters)</span>
+                <input
+                  required
+                  type="number"
+                  min={0}
+                  step={0.1}
+                  value={fuelConsumed}
+                  onChange={(e) => setFuelConsumed(e.target.value ? Number(e.target.value) : "")}
+                  className="w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-amber-500 dark:border-slate-700 dark:text-white"
+                />
+              </label>
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setCompletingTripId(null)}
+                  disabled={loading}
+                  className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading || finalOdometer === "" || fuelConsumed === ""}
+                  className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50"
+                >
+                  Complete Trip
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
