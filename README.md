@@ -38,6 +38,8 @@ transitops/
 ```bash
 cp .env.example .env
 docker compose up --build
+docker compose exec app sh -c "cd backend && npx prisma migrate dev"
+docker compose exec app sh -c "cd backend && npx prisma db seed"
 ```
 
 - Backend API: http://localhost:4000 (health check: `/health`)
