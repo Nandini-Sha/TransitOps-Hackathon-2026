@@ -1,0 +1,8 @@
+{
+  "name": "transitops",
+  "private": true,
+  "version": "1.0.0",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
