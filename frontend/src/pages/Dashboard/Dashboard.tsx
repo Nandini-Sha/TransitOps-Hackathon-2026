@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { AuthUser } from "../../lib/auth";
 import { getDashboardSummary, type DashboardSummary } from "../../lib/dashboard";
+import Fleet from "../Fleet/Fleet";
 
 interface DashboardProps {
   user: AuthUser;
@@ -10,14 +11,14 @@ interface DashboardProps {
 }
 
 const allNavItems = [
-  { name: "Dashboard", roles: ["FLEET_MANAGER", "FINANCIAL_ANALYST"] },
+  { name: "Dashboard", roles: ["DRIVER"] }, // Driver = Dispatcher in business logic
   { name: "Fleet", roles: ["FLEET_MANAGER"] },
-  { name: "Drivers", roles: ["FLEET_MANAGER", "SAFETY_OFFICER"] },
-  { name: "Trips", roles: ["FLEET_MANAGER", "DRIVER"] },
+  { name: "Drivers", roles: ["SAFETY_OFFICER"] },
+  { name: "Trips", roles: ["DRIVER"] },
   { name: "Maintenance", roles: ["FLEET_MANAGER"] },
-  { name: "Fuel & Expenses", roles: ["FLEET_MANAGER", "FINANCIAL_ANALYST", "DRIVER"] },
-  { name: "Analytics", roles: ["FLEET_MANAGER", "FINANCIAL_ANALYST"] },
-  { name: "Settings", roles: ["FLEET_MANAGER", "DRIVER", "SAFETY_OFFICER", "FINANCIAL_ANALYST"] },
+  { name: "Compliance", roles: ["SAFETY_OFFICER"] },
+  { name: "Fuel & Expenses", roles: ["FINANCIAL_ANALYST"] },
+  { name: "Analytics", roles: ["FINANCIAL_ANALYST"] },
 ];
 
 const statusColor: Record<string, string> = {
@@ -115,7 +116,9 @@ export default function Dashboard({
           </header>
 
           <div className="space-y-6 p-4">
-            {activeTab !== "Dashboard" ? (
+            {activeTab === "Fleet" ? (
+              <Fleet />
+            ) : activeTab !== "Dashboard" ? (
               <div className="flex h-64 flex-col items-center justify-center text-slate-500">
                 <p className="text-lg font-semibold">{activeTab}</p>
                 <p className="text-sm">This module is under construction.</p>

@@ -7,7 +7,7 @@ import { dashboardQuerySchema } from "./validation";
 const router = Router();
 
 router.use(requireAuth);
-router.use(requireRole("FLEET_MANAGER", "FINANCIAL_ANALYST"));
+router.use(requireRole("DRIVER")); // DRIVER acts as Dispatcher
 
 router.get(
   "/summary",
