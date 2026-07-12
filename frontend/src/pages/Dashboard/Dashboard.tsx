@@ -7,6 +7,9 @@ import Drivers from "../Drivers/Drivers";
 import Compliance from "../Drivers/Compliance";
 import Maintenance from "../Maintenance/Maintenance";
 import Trips from "../Trips/Trips";
+import FuelAndExpenses from "../Financials/FuelAndExpenses";
+import Analytics from "../Financials/Analytics";
+import Settings from "../Settings/Settings";
 
 interface DashboardProps {
   user: AuthUser;
@@ -24,6 +27,7 @@ const allNavItems = [
   { name: "Compliance", roles: ["SAFETY_OFFICER"] },
   { name: "Fuel & Expenses", roles: ["FINANCIAL_ANALYST"] },
   { name: "Analytics", roles: ["FINANCIAL_ANALYST"] },
+  { name: "Settings", roles: ["FLEET_MANAGER", "DRIVER", "SAFETY_OFFICER", "FINANCIAL_ANALYST"] },
 ];
 
 const statusColor: Record<string, string> = {
@@ -160,6 +164,12 @@ export default function Dashboard({
               <Maintenance searchQuery={searchQuery} />
             ) : activeTab === "Trips" ? (
               <Trips searchQuery={searchQuery} />
+            ) : activeTab === "Fuel & Expenses" ? (
+              <FuelAndExpenses />
+            ) : activeTab === "Analytics" ? (
+              <Analytics />
+            ) : activeTab === "Settings" ? (
+              <Settings user={user} />
             ) : activeTab !== "Dashboard" ? (
               <div className="flex h-64 flex-col items-center justify-center text-slate-500">
                 <p className="text-lg font-semibold">{activeTab}</p>
