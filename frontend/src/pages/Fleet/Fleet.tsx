@@ -39,6 +39,7 @@ export default function Fleet() {
           <input
             type="search"
             placeholder="Search reg. no..."
+            title="Search by registration number, name/model, or type"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-9 w-full rounded-md border border-slate-300 bg-transparent px-3 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 sm:max-w-[200px]"

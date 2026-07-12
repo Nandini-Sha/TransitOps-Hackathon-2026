@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import type { AuthUser } from "../../lib/auth";
 import { getDashboardSummary, type DashboardSummary } from "../../lib/dashboard";
 import Fleet from "../Fleet/Fleet";
+import Drivers from "../Drivers/Drivers";
+import Compliance from "../Drivers/Compliance";
 
 interface DashboardProps {
   user: AuthUser;
@@ -96,13 +98,18 @@ export default function Dashboard({
 
         <section className="min-w-0">
           <header className="flex flex-col gap-3 border-b border-slate-300 px-4 py-3 dark:border-slate-700 md:flex-row md:items-center md:justify-between">
-            <input
-              type="search"
-              placeholder="Search trips or drivers..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-[#111111] md:max-w-xs"
-            />
+            {activeTab === "Dashboard" ? (
+              <input
+                type="search"
+                placeholder="Search trips or drivers..."
+                title="Search by trip code, driver name, or vehicle registration number"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-[#111111] md:max-w-xs"
+              />
+            ) : (
+              <span />
+            )}
             <div className="flex items-center justify-between gap-3 text-xs">
               <span className="truncate text-slate-600 dark:text-slate-300">{user.name}</span>
               <button
@@ -118,6 +125,10 @@ export default function Dashboard({
           <div className="space-y-6 p-4">
             {activeTab === "Fleet" ? (
               <Fleet />
+            ) : activeTab === "Drivers" ? (
+              <Drivers />
+            ) : activeTab === "Compliance" ? (
+              <Compliance />
             ) : activeTab !== "Dashboard" ? (
               <div className="flex h-64 flex-col items-center justify-center text-slate-500">
                 <p className="text-lg font-semibold">{activeTab}</p>

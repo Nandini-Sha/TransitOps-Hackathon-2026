@@ -4,6 +4,13 @@ import { PrismaClient } from "../generated/prisma";
 const prisma = new PrismaClient();
 
 async function main() {
+  await prisma.expense.deleteMany();
+  await prisma.fuelLog.deleteMany();
+  await prisma.maintenanceLog.deleteMany();
+  await prisma.trip.deleteMany();
+  await prisma.driverProfile.deleteMany();
+  await prisma.vehicle.deleteMany();
+
   const passwordHash = await bcrypt.hash("password123", 10);
 
   await prisma.user.createMany({
@@ -112,6 +119,19 @@ async function main() {
       licenseExpiry: new Date("2024-01-01"),
       contact: "9800000004",
       safetyScore: 75,
+      status: "AVAILABLE",
+    },
+  });
+
+  const licenseExpiringSoon = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
+  await prisma.driverProfile.create({
+    data: {
+      name: "Karan Mehta",
+      licenseNumber: "LIC-005",
+      licenseCategory: "HMV",
+      licenseExpiry: licenseExpiringSoon,
+      contact: "9800000005",
+      safetyScore: 85,
       status: "AVAILABLE",
     },
   });
