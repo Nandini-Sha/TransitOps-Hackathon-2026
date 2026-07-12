@@ -5,6 +5,7 @@ interface Filters {
   type?: string;
   status?: string;
   region?: string;
+  search?: string;
 }
 
 export async function getSummary(filters: Filters) {
@@ -33,6 +34,13 @@ export async function getSummary(filters: Filters) {
 
   const rawRecentTrips = await prisma.trip.findMany({
     take: 4,
+    where: filters.search ? {
+      OR: [
+        { tripCode: { contains: filters.search, mode: 'insensitive' } },
+        { driver: { name: { contains: filters.search, mode: 'insensitive' } } },
+        { vehicle: { regNumber: { contains: filters.search, mode: 'insensitive' } } }
+      ]
+    } : undefined,
     orderBy: { createdAt: 'desc' },
     include: { vehicle: true, driver: true }
   });

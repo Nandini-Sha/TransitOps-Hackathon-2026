@@ -10,8 +10,22 @@ export interface DashboardSummary {
   vehicleStatus: Array<{ label: string; value: number; color: string }>;
 }
 
-export async function getDashboardSummary(): Promise<DashboardSummary> {
-  const response = await fetch("/api/dashboard/summary", {
+export interface DashboardFilters {
+  type?: string;
+  status?: string;
+  region?: string;
+  search?: string;
+}
+
+export async function getDashboardSummary(filters?: DashboardFilters): Promise<DashboardSummary> {
+  const params = new URLSearchParams();
+  if (filters?.type && filters.type !== "All") params.append("type", filters.type);
+  if (filters?.status && filters.status !== "All") params.append("status", filters.status);
+  if (filters?.region && filters.region !== "All") params.append("region", filters.region);
+  if (filters?.search) params.append("search", filters.search);
+
+  const query = params.toString() ? `?${params.toString()}` : "";
+  const response = await fetch(`/api/dashboard/summary${query}`, {
     credentials: "include",
   });
   if (!response.ok) {
