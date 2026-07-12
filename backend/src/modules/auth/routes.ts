@@ -11,6 +11,13 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+const signupSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+  name: z.string().min(2),
+  role: z.enum(["FLEET_MANAGER", "DRIVER", "SAFETY_OFFICER", "FINANCIAL_ANALYST"]),
+});
+
 const cookieOptions = {
   httpOnly: true,
   sameSite: "lax" as const,
@@ -24,6 +31,16 @@ router.post(
     const { token, maxAge, user } = await authService.login(email, password);
     res.cookie("token", token, { ...cookieOptions, maxAge });
     res.json(user);
+  })
+);
+
+router.post(
+  "/signup",
+  asyncHandler(async (req, res) => {
+    const { email, password, name, role } = signupSchema.parse(req.body);
+    const { token, maxAge, user } = await authService.signup(email, password, name, role);
+    res.cookie("token", token, { ...cookieOptions, maxAge });
+    res.status(201).json(user);
   })
 );
 

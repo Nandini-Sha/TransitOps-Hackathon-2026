@@ -1,17 +1,19 @@
 import { FormEvent, useState } from "react";
-import { login } from "../../lib/auth";
+import { signup } from "../../lib/auth";
 import type { AuthUser } from "../../lib/auth";
+import RoleSelector, { type UserRole } from "./RoleSelector";
 
-interface LoginFormProps {
+interface SignupFormProps {
   onAuthenticated: (user: AuthUser) => void;
 }
 
-export default function LoginForm({ onAuthenticated }: LoginFormProps) {
+export default function SignupForm({ onAuthenticated }: SignupFormProps) {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const [role, setRole] = useState<UserRole>("FLEET_MANAGER");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -19,13 +21,10 @@ export default function LoginForm({ onAuthenticated }: LoginFormProps) {
     setError("");
 
     try {
-      const user = await login(email.trim(), password);
-      if (!remember) {
-        window.sessionStorage.setItem("transitops-session-only", "true");
-      }
+      const user = await signup(email.trim(), password, name.trim(), role);
       onAuthenticated(user);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to sign in");
+      setError(err instanceof Error ? err.message : "Unable to sign up");
     } finally {
       setLoading(false);
     }
@@ -42,14 +41,28 @@ export default function LoginForm({ onAuthenticated }: LoginFormProps) {
 
       <div className="mb-6">
         <h2 className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">
-          Sign in to your account
+          Create an account
         </h2>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Enter your credentials to continue
+          Enter your details to register
         </p>
       </div>
 
       <div className="space-y-4">
+        <label className="block">
+          <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            Name
+          </span>
+          <input
+            type="text"
+            autoComplete="name"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            required
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/30 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+          />
+        </label>
+
         <label className="block">
           <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
             Email
@@ -70,35 +83,23 @@ export default function LoginForm({ onAuthenticated }: LoginFormProps) {
           </span>
           <input
             type="password"
-            autoComplete="current-password"
+            autoComplete="new-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             required
+            minLength={6}
             className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/30 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
           />
         </label>
 
-        <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-            <input
-              type="checkbox"
-              checked={remember}
-              onChange={(event) => setRemember(event.target.checked)}
-              className="h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500"
-            />
-            Remember me
-          </label>
-          <button type="button" className="font-medium text-amber-700 dark:text-amber-400">
-            Forgot password?
-          </button>
-        </div>
+        <RoleSelector value={role} onChange={setRole} />
 
         <button
           type="submit"
           disabled={loading}
           className="w-full rounded-md bg-amber-700 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? "Signing in..." : "Sign In"}
+          {loading ? "Signing up..." : "Sign Up"}
         </button>
       </div>
     </form>

@@ -1,5 +1,7 @@
+import { useState } from "react";
 import BrandPanel from "../../components/auth/BrandPanel";
 import LoginForm from "../../components/auth/LoginForm";
+import SignupForm from "../../components/auth/SignupForm";
 import type { AuthUser } from "../../lib/auth";
 
 interface LoginPageProps {
@@ -13,6 +15,8 @@ export default function LoginPage({
   darkMode,
   onToggleTheme,
 }: LoginPageProps) {
+  const [isLogin, setIsLogin] = useState(true);
+
   return (
     <main className="min-h-screen bg-white p-4 text-slate-950 transition-colors dark:bg-[#111111] dark:text-slate-100">
       <div className="mx-auto grid min-h-[calc(100vh-2rem)] max-w-7xl overflow-hidden border border-slate-300 dark:border-slate-700 lg:grid-cols-[0.72fr_1fr]">
@@ -25,7 +29,32 @@ export default function LoginPage({
           >
             {darkMode ? "Light" : "Dark"}
           </button>
-          <LoginForm onAuthenticated={onAuthenticated} />
+
+          <div className="w-full max-w-md">
+            {isLogin ? (
+              <LoginForm onAuthenticated={onAuthenticated} />
+            ) : (
+              <SignupForm onAuthenticated={onAuthenticated} />
+            )}
+
+            <div className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
+              {isLogin ? (
+                <p>
+                  Don't have an account?{" "}
+                  <button type="button" onClick={() => setIsLogin(false)} className="font-semibold text-amber-700 hover:underline dark:text-amber-400">
+                    Sign up
+                  </button>
+                </p>
+              ) : (
+                <p>
+                  Already have an account?{" "}
+                  <button type="button" onClick={() => setIsLogin(true)} className="font-semibold text-amber-700 hover:underline dark:text-amber-400">
+                    Sign in
+                  </button>
+                </p>
+              )}
+            </div>
+          </div>
         </section>
       </div>
     </main>

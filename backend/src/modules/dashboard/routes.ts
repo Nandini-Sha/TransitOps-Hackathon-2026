@@ -10,10 +10,10 @@ router.use(requireAuth);
 router.use(requireRole("FLEET_MANAGER", "FINANCIAL_ANALYST"));
 
 router.get(
-  "/kpis",
+  "/summary",
   asyncHandler(async (req, res) => {
     const filters = dashboardQuerySchema.parse(req.query);
-    res.json(await dashboardService.getKpis(filters));
+    res.json(await dashboardService.getSummary(filters));
   })
 );
 
