@@ -1,7 +1,8 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { requireAuth, requireRole } from "../../middleware/auth";
 import { toCsv } from "../../utils/csv";
+import { streamPdfTable } from "../../utils/pdf";
 import * as reportsService from "./service";
 
 const router = Router();
@@ -9,11 +10,21 @@ const router = Router();
 router.use(requireAuth);
 router.use(requireRole("FLEET_MANAGER", "FINANCIAL_ANALYST"));
 
-function respond(req: import("express").Request, res: import("express").Response, filename: string, rows: Record<string, unknown>[]) {
+function respond(
+  req: Request,
+  res: Response,
+  filename: string,
+  title: string,
+  rows: Record<string, unknown>[]
+) {
   if (req.query.format === "csv") {
     res.setHeader("Content-Type", "text/csv");
     res.setHeader("Content-Disposition", `attachment; filename="${filename}.csv"`);
     res.send(toCsv(rows));
+    return;
+  }
+  if (req.query.format === "pdf") {
+    streamPdfTable(res, filename, title, rows);
     return;
   }
   res.json(rows);
@@ -22,28 +33,40 @@ function respond(req: import("express").Request, res: import("express").Response
 router.get(
   "/fuel-efficiency",
   asyncHandler(async (req, res) => {
-    respond(req, res, "fuel-efficiency", await reportsService.getFuelEfficiencyReport());
+    respond(req, res, "fuel-efficiency", "Fuel Efficiency Report", await reportsService.getFuelEfficiencyReport());
   })
 );
 
 router.get(
   "/fleet-utilization",
   asyncHandler(async (req, res) => {
-    respond(req, res, "fleet-utilization", await reportsService.getFleetUtilizationReport());
+    respond(
+      req,
+      res,
+      "fleet-utilization",
+      "Fleet Utilization Report",
+      await reportsService.getFleetUtilizationReport()
+    );
   })
 );
 
 router.get(
   "/operational-cost",
   asyncHandler(async (req, res) => {
-    respond(req, res, "operational-cost", await reportsService.getOperationalCostReport());
+    respond(
+      req,
+      res,
+      "operational-cost",
+      "Operational Cost Report",
+      await reportsService.getOperationalCostReport()
+    );
   })
 );
 
 router.get(
   "/vehicle-roi",
   asyncHandler(async (req, res) => {
-    respond(req, res, "vehicle-roi", await reportsService.getVehicleRoiReport());
+    respond(req, res, "vehicle-roi", "Vehicle ROI Report", await reportsService.getVehicleRoiReport());
   })
 );
 
