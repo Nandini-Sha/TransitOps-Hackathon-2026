@@ -114,7 +114,7 @@ Category enum: `TOLL | MISC`
 
 ## Reports — `/api/reports`
 
-All support `?format=csv` to download instead of JSON.
+All support `?format=csv` or `?format=pdf` to download instead of JSON.
 
 | Method | Path | Roles | Returns |
 |---|---|---|---|
