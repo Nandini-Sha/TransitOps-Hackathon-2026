@@ -95,9 +95,9 @@ export default function Dashboard({
   }
 
   return (
-    <main className="min-h-screen bg-slate-100 p-4 text-slate-950 transition-colors dark:bg-[#111111] dark:text-slate-100">
-      <div className="grid min-h-[calc(100vh-2rem)] overflow-hidden border border-slate-300 bg-white dark:border-slate-600 dark:bg-[#111111] lg:grid-cols-[170px_1fr]">
-        <aside className="flex flex-col border-b border-slate-300 bg-slate-50 dark:border-slate-600 dark:bg-[#171717] lg:border-b-0 lg:border-r">
+    <main className="min-h-screen bg-white p-4 text-slate-950 transition-colors dark:bg-[#111111] dark:text-slate-100">
+      <div className="grid min-h-[calc(100vh-2rem)] overflow-hidden border border-slate-200 bg-slate-50/50 dark:border-slate-600 dark:bg-[#111111] lg:grid-cols-[170px_1fr]">
+        <aside className="flex flex-col border-b border-slate-200 bg-white dark:border-slate-600 dark:bg-[#171717] lg:border-b-0 lg:border-r">
           <div>
             <div className="flex items-center justify-between border-b border-slate-300 px-4 py-4 dark:border-slate-700 lg:block">
               <p className="text-sm font-semibold">TransitOps</p>
