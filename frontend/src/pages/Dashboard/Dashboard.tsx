@@ -10,6 +10,11 @@ import Trips from "../Trips/Trips";
 import FuelAndExpenses from "../Financials/FuelAndExpenses";
 import Analytics from "../Financials/Analytics";
 import Settings from "../Settings/Settings";
+import Modal, { ModalFooter } from "../../components/ui/Modal";
+import { TextField } from "../../components/ui/FormField";
+import KpiCard from "../../components/ui/KpiCard";
+import SearchInput from "../../components/ui/SearchInput";
+import { LoadingState, ErrorState } from "../../components/ui/AsyncState";
 
 interface DashboardProps {
   user: AuthUser;
@@ -133,13 +138,12 @@ export default function Dashboard({
 
         <section className="min-w-0">
           <header className="flex flex-col gap-3 border-b border-slate-300 px-4 py-3 dark:border-slate-700 md:flex-row md:items-center md:justify-between">
-            <input
-              type="search"
+            <SearchInput
               placeholder={activeTab === "Dashboard" ? "Search trips or drivers..." : activeTab === "Fleet" ? "Search reg. no..." : activeTab === "Maintenance" ? "Search maintenance logs..." : activeTab === "Trips" ? "Search trips..." : "Search..."}
               title={activeTab === "Fleet" ? "Search by registration number, name/model, or type" : activeTab === "Dashboard" ? "Search by trip code, driver name, or vehicle registration number" : undefined}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-slate-700 dark:bg-[#111111] md:max-w-xs"
+              onValueChange={setSearchQuery}
+              className="bg-white dark:bg-[#111111] md:max-w-xs"
             />
             <div className="flex items-center justify-between gap-3 text-xs">
               <span className="truncate text-slate-600 dark:text-slate-300">{user.name}</span>
@@ -176,13 +180,9 @@ export default function Dashboard({
                 <p className="text-sm">This module is under construction.</p>
               </div>
             ) : loading ? (
-              <div className="flex h-64 items-center justify-center text-sm text-slate-500">
-                Loading dashboard...
-              </div>
+              <LoadingState label="Loading dashboard..." />
             ) : error ? (
-              <div className="flex h-64 items-center justify-center text-sm text-red-500">
-                {error}
-              </div>
+              <ErrorState message={error} />
             ) : !data ? null : (
             <>
             <div className="flex flex-col gap-3">
@@ -229,15 +229,7 @@ export default function Dashboard({
 
             <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-7">
               {data.kpis.map((kpi) => (
-                <article
-                  key={kpi.label}
-                  className={`min-h-20 border border-slate-300 border-l-4 bg-slate-50 p-3 dark:border-slate-700 dark:bg-[#151515] ${kpi.accent}`}
-                >
-                  <p className="text-[10px] font-semibold uppercase text-slate-500 dark:text-slate-400">
-                    {kpi.label}
-                  </p>
-                  <p className="mt-2 text-2xl font-semibold">{kpi.value}</p>
-                </article>
+                <KpiCard key={kpi.label} label={kpi.label} value={kpi.value} accent={kpi.accent} />
               ))}
             </section>
 
@@ -329,55 +321,38 @@ export default function Dashboard({
       </div>
 
       {/* Complete Trip Modal */}
-      {completingTripId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-lg border border-slate-300 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-[#111111]">
-            <h2 className="mb-4 text-lg font-semibold dark:text-white">Complete Trip</h2>
-            <form onSubmit={handleCompleteSubmit} className="space-y-4">
-              <label className="block space-y-1">
-                <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Final Odometer</span>
-                <input
-                  required
-                  type="number"
-                  min={0}
-                  value={finalOdometer}
-                  onChange={(e) => setFinalOdometer(e.target.value ? Number(e.target.value) : "")}
-                  className="w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-amber-500 dark:border-slate-700 dark:text-white"
-                />
-              </label>
-              <label className="block space-y-1">
-                <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Fuel Consumed (Liters)</span>
-                <input
-                  required
-                  type="number"
-                  min={0}
-                  step={0.1}
-                  value={fuelConsumed}
-                  onChange={(e) => setFuelConsumed(e.target.value ? Number(e.target.value) : "")}
-                  className="w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-amber-500 dark:border-slate-700 dark:text-white"
-                />
-              </label>
-              <div className="mt-6 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setCompletingTripId(null)}
-                  disabled={loading}
-                  className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading || finalOdometer === "" || fuelConsumed === ""}
-                  className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50"
-                >
-                  Complete Trip
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <Modal
+        isOpen={completingTripId !== null}
+        title="Complete Trip"
+        onClose={() => setCompletingTripId(null)}
+        maxWidth="sm"
+      >
+        <form onSubmit={handleCompleteSubmit} className="space-y-4">
+          <TextField
+            label="Final Odometer"
+            required
+            type="number"
+            min={0}
+            value={finalOdometer}
+            onChange={(e) => setFinalOdometer(e.target.value ? Number(e.target.value) : "")}
+          />
+          <TextField
+            label="Fuel Consumed (Liters)"
+            required
+            type="number"
+            min={0}
+            step={0.1}
+            value={fuelConsumed}
+            onChange={(e) => setFuelConsumed(e.target.value ? Number(e.target.value) : "")}
+          />
+          <ModalFooter
+            onCancel={() => setCompletingTripId(null)}
+            submitLabel="Complete Trip"
+            loading={loading}
+            disabled={finalOdometer === "" || fuelConsumed === ""}
+          />
+        </form>
+      </Modal>
     </main>
   );
 }

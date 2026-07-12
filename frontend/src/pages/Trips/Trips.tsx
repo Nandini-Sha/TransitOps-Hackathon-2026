@@ -11,6 +11,10 @@ import {
   type Trip,
   type TripSortField,
 } from "../../lib/trips";
+import Modal, { ModalFooter } from "../../components/ui/Modal";
+import { TextField } from "../../components/ui/FormField";
+import StatusBadge from "../../components/ui/StatusBadge";
+import { ErrorState } from "../../components/ui/AsyncState";
 
 const statusColor: Record<string, string> = {
   DRAFT: "bg-slate-400 text-slate-950",
@@ -172,11 +176,7 @@ export default function Trips({ searchQuery = "" }: { searchQuery?: string }) {
   }
 
   if (error) {
-    return (
-      <div className="flex h-64 items-center justify-center text-sm text-red-500">
-        {error}
-      </div>
-    );
+    return <ErrorState message={error} />;
   }
 
   return (
@@ -458,55 +458,38 @@ export default function Trips({ searchQuery = "" }: { searchQuery?: string }) {
       </div>
 
       {/* Complete Trip Modal */}
-      {completingTrip && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-lg border border-slate-300 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-[#111111]">
-            <h2 className="mb-4 text-lg font-semibold dark:text-white">Complete {completingTrip.tripCode}</h2>
-            <form onSubmit={handleCompleteSubmit} className="space-y-4">
-              <label className="block space-y-1">
-                <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Final Odometer</span>
-                <input
-                  required
-                  type="number"
-                  min={0}
-                  value={finalOdometer}
-                  onChange={(e) => setFinalOdometer(e.target.value ? Number(e.target.value) : "")}
-                  className="w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-amber-500 dark:border-slate-700 dark:text-white"
-                />
-              </label>
-              <label className="block space-y-1">
-                <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Fuel Consumed (Liters)</span>
-                <input
-                  required
-                  type="number"
-                  min={0}
-                  step={0.1}
-                  value={fuelConsumed}
-                  onChange={(e) => setFuelConsumed(e.target.value ? Number(e.target.value) : "")}
-                  className="w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-amber-500 dark:border-slate-700 dark:text-white"
-                />
-              </label>
-              <div className="mt-6 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setCompletingTrip(null)}
-                  disabled={loading}
-                  className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading || finalOdometer === "" || fuelConsumed === ""}
-                  className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50"
-                >
-                  Complete Trip
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <Modal
+        isOpen={completingTrip !== null}
+        title={`Complete ${completingTrip?.tripCode ?? ""}`}
+        onClose={() => setCompletingTrip(null)}
+        maxWidth="sm"
+      >
+        <form onSubmit={handleCompleteSubmit} className="space-y-4">
+          <TextField
+            label="Final Odometer"
+            required
+            type="number"
+            min={0}
+            value={finalOdometer}
+            onChange={(e) => setFinalOdometer(e.target.value ? Number(e.target.value) : "")}
+          />
+          <TextField
+            label="Fuel Consumed (Liters)"
+            required
+            type="number"
+            min={0}
+            step={0.1}
+            value={fuelConsumed}
+            onChange={(e) => setFuelConsumed(e.target.value ? Number(e.target.value) : "")}
+          />
+          <ModalFooter
+            onCancel={() => setCompletingTrip(null)}
+            submitLabel="Complete Trip"
+            loading={loading}
+            disabled={finalOdometer === "" || fuelConsumed === ""}
+          />
+        </form>
+      </Modal>
     </div>
   );
 }
