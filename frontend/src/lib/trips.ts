@@ -26,6 +26,7 @@ export interface CreateTripInput {
   driverId: string;
   cargoWeight: number;
   plannedDistance: number;
+  revenue?: number;
 }
 
 export interface CompleteTripInput {
@@ -34,8 +35,23 @@ export interface CompleteTripInput {
   fuelCost?: number;
 }
 
-export async function getTrips(search?: string): Promise<Trip[]> {
-  const query = search ? `?search=${encodeURIComponent(search)}` : "";
+export type TripSortField = "tripCode" | "plannedDistance" | "createdAt" | "dispatchedAt" | "completedAt";
+
+export interface TripFilters {
+  search?: string;
+  status?: Trip["status"];
+  sortBy?: TripSortField;
+  sortOrder?: "asc" | "desc";
+}
+
+export async function getTrips(filters?: TripFilters): Promise<Trip[]> {
+  const params = new URLSearchParams();
+  if (filters?.search) params.append("search", filters.search);
+  if (filters?.status) params.append("status", filters.status);
+  if (filters?.sortBy) params.append("sortBy", filters.sortBy);
+  if (filters?.sortOrder) params.append("sortOrder", filters.sortOrder);
+
+  const query = params.toString() ? `?${params.toString()}` : "";
   const response = await fetch(`/api/trips${query}`, {
     credentials: "include",
   });

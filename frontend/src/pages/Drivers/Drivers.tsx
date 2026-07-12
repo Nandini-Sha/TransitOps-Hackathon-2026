@@ -8,6 +8,7 @@ import {
   INDIAN_MOBILE_COUNTRY_CODE,
   type Driver,
   type DriverStatusValue,
+  type DriverSortField,
 } from "../../lib/drivers";
 import DriverFormModal from "./DriverFormModal";
 
@@ -23,13 +24,15 @@ export default function Drivers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<DriverSortField>("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
   const [actioningId, setActioningId] = useState<string | null>(null);
 
   function fetchDrivers() {
     setLoading(true);
-    getDrivers({ search: searchQuery })
+    getDrivers({ search: searchQuery, sortBy, sortOrder })
       .then(setDrivers)
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load drivers"))
       .finally(() => setLoading(false));
@@ -38,7 +41,16 @@ export default function Drivers() {
   useEffect(() => {
     fetchDrivers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery]);
+  }, [searchQuery, sortBy, sortOrder]);
+
+  function handleSort(field: DriverSortField) {
+    if (sortBy === field) {
+      setSortOrder((current) => (current === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(field);
+      setSortOrder("asc");
+    }
+  }
 
   function openAddModal() {
     setEditingDriver(null);
@@ -95,12 +107,27 @@ export default function Drivers() {
           <table className="w-full min-w-[900px] text-left text-sm">
             <thead className="border-b border-slate-200 uppercase text-slate-500 dark:border-slate-800 dark:text-slate-400">
               <tr>
-                <th className="py-3 text-[10px] font-semibold">Name</th>
+                <th
+                  className="py-3 text-[10px] font-semibold cursor-pointer hover:text-amber-600 transition-colors"
+                  onClick={() => handleSort("name")}
+                >
+                  Name {sortBy === "name" && (sortOrder === "asc" ? "↑" : "↓")}
+                </th>
                 <th className="py-3 text-[10px] font-semibold">License No.</th>
                 <th className="py-3 text-[10px] font-semibold">Category</th>
-                <th className="py-3 text-[10px] font-semibold">Expiry</th>
+                <th
+                  className="py-3 text-[10px] font-semibold cursor-pointer hover:text-amber-600 transition-colors"
+                  onClick={() => handleSort("licenseExpiry")}
+                >
+                  Expiry {sortBy === "licenseExpiry" && (sortOrder === "asc" ? "↑" : "↓")}
+                </th>
                 <th className="py-3 text-[10px] font-semibold">Contact</th>
-                <th className="py-3 text-[10px] font-semibold">Safety Score</th>
+                <th
+                  className="py-3 text-[10px] font-semibold cursor-pointer hover:text-amber-600 transition-colors"
+                  onClick={() => handleSort("safetyScore")}
+                >
+                  Safety Score {sortBy === "safetyScore" && (sortOrder === "asc" ? "↑" : "↓")}
+                </th>
                 <th className="py-3 text-[10px] font-semibold">Status</th>
                 <th className="py-3 text-[10px] font-semibold text-right">Actions</th>
               </tr>

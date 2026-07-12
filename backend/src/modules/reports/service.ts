@@ -26,20 +26,24 @@ export async function getFuelEfficiencyReport() {
   });
 }
 
+const UTILIZATION_WINDOW_DAYS = 30;
+
 export async function getFleetUtilizationReport() {
   const vehicles = await loadVehiclesWithRelations();
-  const now = Date.now();
+  const windowStart = Date.now() - UTILIZATION_WINDOW_DAYS * 24 * 3_600_000;
+  const windowHours = UTILIZATION_WINDOW_DAYS * 24;
+
   return vehicles.map((v) => {
     const tripHours = v.trips.reduce((sum, t) => {
       if (!t.dispatchedAt || !t.completedAt) return sum;
+      if (t.completedAt.getTime() < windowStart) return sum;
       return sum + (t.completedAt.getTime() - t.dispatchedAt.getTime()) / 3_600_000;
     }, 0);
-    const fleetHours = Math.max((now - v.createdAt.getTime()) / 3_600_000, 1);
     return {
       vehicleId: v.id,
       regNumber: v.regNumber,
       tripHours: Math.round(tripHours * 100) / 100,
-      utilizationPct: Math.round((tripHours / fleetHours) * 1000) / 10,
+      utilizationPct: Math.min(100, Math.round((tripHours / windowHours) * 1000) / 10),
     };
   });
 }

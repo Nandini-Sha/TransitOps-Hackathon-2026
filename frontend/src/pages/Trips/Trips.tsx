@@ -9,6 +9,7 @@ import {
   completeTrip,
   cancelTrip,
   type Trip,
+  type TripSortField,
 } from "../../lib/trips";
 
 const statusColor: Record<string, string> = {
@@ -26,6 +27,11 @@ export default function Trips({ searchQuery = "" }: { searchQuery?: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Filter/Sort State
+  const [statusFilter, setStatusFilter] = useState<Trip["status"] | "All">("All");
+  const [sortBy, setSortBy] = useState<TripSortField>("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
   // Form State
   const [source, setSource] = useState("");
   const [destination, setDestination] = useState("");
@@ -33,6 +39,7 @@ export default function Trips({ searchQuery = "" }: { searchQuery?: string }) {
   const [driverId, setDriverId] = useState("");
   const [cargoWeight, setCargoWeight] = useState<number | "">("");
   const [plannedDistance, setPlannedDistance] = useState<number | "">("");
+  const [revenue, setRevenue] = useState<number | "">("");
 
   // Validation State
   const [capacityError, setCapacityError] = useState<string | null>(null);
@@ -45,7 +52,12 @@ export default function Trips({ searchQuery = "" }: { searchQuery?: string }) {
   function fetchData() {
     setLoading(true);
     Promise.all([
-      getTrips(searchQuery),
+      getTrips({
+        search: searchQuery,
+        status: statusFilter === "All" ? undefined : statusFilter,
+        sortBy,
+        sortOrder,
+      }),
       getVehicles({ status: VehicleStatus.AVAILABLE }),
       getAvailableDrivers(),
     ])
@@ -61,7 +73,16 @@ export default function Trips({ searchQuery = "" }: { searchQuery?: string }) {
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery]);
+  }, [searchQuery, statusFilter, sortBy, sortOrder]);
+
+  function handleSort(field: TripSortField) {
+    if (sortBy === field) {
+      setSortOrder((current) => (current === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(field);
+      setSortOrder("asc");
+    }
+  }
 
   useEffect(() => {
     if (vehicleId && cargoWeight !== "") {
@@ -96,12 +117,13 @@ export default function Trips({ searchQuery = "" }: { searchQuery?: string }) {
         driverId,
         cargoWeight: Number(cargoWeight),
         plannedDistance: Number(plannedDistance),
+        revenue: revenue === "" ? undefined : Number(revenue),
       });
 
       if (!isDraft) {
         await dispatchTrip(trip.id);
       }
-      
+
       // Reset form
       setSource("");
       setDestination("");
@@ -109,6 +131,7 @@ export default function Trips({ searchQuery = "" }: { searchQuery?: string }) {
       setDriverId("");
       setCargoWeight("");
       setPlannedDistance("");
+      setRevenue("");
       fetchData();
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to create trip");
@@ -283,6 +306,20 @@ export default function Trips({ searchQuery = "" }: { searchQuery?: string }) {
               />
             </label>
 
+            <label className="block space-y-1">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Revenue (optional)
+              </span>
+              <input
+                type="number"
+                min="0"
+                placeholder="e.g. 15000"
+                value={revenue}
+                onChange={(e) => setRevenue(e.target.value ? Number(e.target.value) : "")}
+                className="w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-amber-500 dark:border-slate-700"
+              />
+            </label>
+
             {capacityError && (
               <div className="rounded-md border border-red-500 bg-red-500/10 p-3 text-sm text-red-600 dark:text-red-400 whitespace-pre-line">
                 {capacityError}
@@ -312,7 +349,7 @@ export default function Trips({ searchQuery = "" }: { searchQuery?: string }) {
 
         {/* Right Pane: Live Board */}
         <section>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
             <h2 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">
               Live Board
             </h2>
@@ -320,7 +357,41 @@ export default function Trips({ searchQuery = "" }: { searchQuery?: string }) {
               On Complete: odometer → fuel log → expenses → Vehicle & Driver Available
             </p>
           </div>
-          
+
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as Trip["status"] | "All")}
+              className="h-9 rounded-md border border-slate-300 bg-transparent px-3 text-xs outline-none focus:border-amber-500 dark:border-slate-700 dark:bg-[#111111]"
+            >
+              <option value="All">Status: All</option>
+              <option value="DRAFT">Draft</option>
+              <option value="DISPATCHED">Dispatched</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
+
+            <select
+              value={sortBy}
+              onChange={(e) => handleSort(e.target.value as TripSortField)}
+              className="h-9 rounded-md border border-slate-300 bg-transparent px-3 text-xs outline-none focus:border-amber-500 dark:border-slate-700 dark:bg-[#111111]"
+            >
+              <option value="createdAt">Sort: Created</option>
+              <option value="tripCode">Sort: Trip Code</option>
+              <option value="plannedDistance">Sort: Distance</option>
+              <option value="dispatchedAt">Sort: Dispatched</option>
+              <option value="completedAt">Sort: Completed</option>
+            </select>
+
+            <button
+              type="button"
+              onClick={() => setSortOrder((current) => (current === "asc" ? "desc" : "asc"))}
+              className="h-9 rounded-md border border-slate-300 px-3 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300"
+            >
+              {sortOrder === "asc" ? "↑ Asc" : "↓ Desc"}
+            </button>
+          </div>
+
           {loading && trips.length === 0 ? (
             <div className="flex h-32 items-center justify-center text-sm text-slate-500">
               Loading trips...

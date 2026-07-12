@@ -20,6 +20,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+const REPORT_EXPORTS = [
+  { label: "Fuel Efficiency", endpoint: "fuel-efficiency" },
+  { label: "Fleet Utilization", endpoint: "fleet-utilization" },
+  { label: "Operational Cost", endpoint: "operational-cost" },
+  { label: "Vehicle ROI", endpoint: "vehicle-roi" },
+] as const;
+
 export default function Analytics() {
   const [fuelEff, setFuelEff] = useState<FuelEfficiencyReport[]>([]);
   const [fleetUtil, setFleetUtil] = useState<FleetUtilizationReport[]>([]);
@@ -27,6 +34,7 @@ export default function Analytics() {
   const [roi, setRoi] = useState<VehicleRoiReport[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -43,7 +51,7 @@ export default function Analytics() {
         setRoi(r);
         setTrips(t);
       })
-      .catch(console.error)
+      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load analytics"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -56,9 +64,9 @@ export default function Analytics() {
   }, [fuelEff]);
 
   const avgFleetUtil = useMemo(() => {
-    if (fleetUtil.length === 0) return 0;
+    if (fleetUtil.length === 0) return "0.0";
     const sum = fleetUtil.reduce((acc, curr) => acc + curr.utilizationPct, 0);
-    return Math.round(sum / fleetUtil.length);
+    return (sum / fleetUtil.length).toFixed(1);
   }, [fleetUtil]);
 
   const totalOpCost = useMemo(() => {
@@ -104,8 +112,46 @@ export default function Analytics() {
     return <div className="flex h-64 items-center justify-center text-sm text-slate-500">Loading analytics...</div>;
   }
 
+  if (error) {
+    return <div className="flex h-64 items-center justify-center text-sm text-red-500">{error}</div>;
+  }
+
   return (
     <div className="space-y-8">
+      {/* Export Reports */}
+      <section className="space-y-3">
+        <h2 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">
+          Export Reports
+        </h2>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[520px] text-left text-sm">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+              {REPORT_EXPORTS.map((report) => (
+                <tr key={report.endpoint}>
+                  <td className="py-2 pr-4 font-medium">{report.label}</td>
+                  <td className="py-2 text-right">
+                    <div className="flex justify-end gap-2">
+                      <a
+                        href={`/api/reports/${report.endpoint}?format=csv`}
+                        className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-900"
+                      >
+                        Export CSV
+                      </a>
+                      <a
+                        href={`/api/reports/${report.endpoint}?format=pdf`}
+                        className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-900"
+                      >
+                        Export PDF
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       {/* KPI Cards */}
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <article className="min-h-20 border border-slate-300 border-l-4 border-l-blue-500 bg-slate-50 p-4 dark:border-slate-700 dark:bg-[#151515]">
@@ -137,7 +183,7 @@ export default function Analytics() {
               <BarChart data={monthlyRevenueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                 <XAxis dataKey="month" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `${val / 1000}k`} />
+                <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val: number) => `${val / 1000}k`} />
                 <Tooltip
                   cursor={{ fill: "rgba(255,255,255,0.05)" }}
                   contentStyle={{ backgroundColor: "#1e293b", border: "none", borderRadius: "8px", color: "#f8fafc" }}

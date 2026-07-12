@@ -7,7 +7,7 @@ import { createTripSchema, updateTripSchema, completeTripSchema, listTripsQueryS
 const router = Router();
 
 router.use(requireAuth);
-router.use(requireRole("DRIVER", "SAFETY_OFFICER"));
+router.use(requireRole("DRIVER", "SAFETY_OFFICER", "FINANCIAL_ANALYST"));
 
 router.get(
   "/",

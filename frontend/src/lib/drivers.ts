@@ -20,9 +20,11 @@ export interface Driver {
   updatedAt: string;
 }
 
+export type DriverSortField = "name" | "licenseExpiry" | "safetyScore" | "createdAt";
+
 export interface DriverFilters {
   search?: string;
-  sortBy?: string;
+  sortBy?: DriverSortField;
   sortOrder?: "asc" | "desc";
 }
 
