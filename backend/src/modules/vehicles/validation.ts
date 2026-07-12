@@ -11,9 +11,9 @@ export const createVehicleSchema = z.object({
   region: z.string().min(1),
 });
 
-export const updateVehicleSchema = createVehicleSchema.partial().extend({
-  status: z.nativeEnum(VehicleStatus).optional(),
-});
+// status is intentionally excluded: it may only change via trip dispatch/complete/cancel,
+// maintenance create/complete, or the dedicated retire endpoint (PDF section 4 business rules).
+export const updateVehicleSchema = createVehicleSchema.partial();
 
 export const vehicleSortFields = ["regNumber", "name", "odometer", "acquisitionCost", "createdAt"] as const;
 

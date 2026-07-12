@@ -135,31 +135,13 @@ export default function Fleet({ searchQuery }: { searchQuery: string }) {
                   <td className="py-4">{vehicle.odometer.toLocaleString()}</td>
                   <td className="py-4">{vehicle.acquisitionCost.toLocaleString()}</td>
                   <td className="py-4">
-                    <select
-                      value={vehicle.status}
-                      onChange={async (e) => {
-                        const newStatus = e.target.value as VehicleStatus;
-                        try {
-                          await fetch(`/api/vehicles/${vehicle.id}`, {
-                            method: "PUT",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ status: newStatus }),
-                            credentials: "include",
-                          });
-                          fetchVehicles();
-                        } catch (err) {
-                          alert("Failed to update status");
-                        }
-                      }}
-                      className={`inline-flex min-w-28 cursor-pointer appearance-none outline-none items-center justify-center rounded px-2.5 py-1 text-center text-xs font-semibold shadow-sm ${
+                    <span
+                      className={`inline-flex min-w-28 items-center justify-center rounded px-2.5 py-1 text-center text-xs font-semibold shadow-sm ${
                         statusColor[vehicle.status] || "bg-slate-400 text-white"
                       }`}
                     >
-                      <option value="AVAILABLE" className="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-200">Available</option>
-                      <option value="ON_TRIP" className="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-200">On Trip</option>
-                      <option value="IN_SHOP" className="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-200">In Shop</option>
-                      <option value="RETIRED" className="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-200">Retired</option>
-                    </select>
+                      {vehicle.status.replace("_", " ")}
+                    </span>
                   </td>
                   <td className="py-4 text-right">
                     <button

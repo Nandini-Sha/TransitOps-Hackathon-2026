@@ -31,7 +31,6 @@ export interface CreateVehicleInput {
   odometer: number;
   acquisitionCost: number;
   region: string;
-  status?: VehicleStatus;
 }
 
 export async function getVehicles(filters?: VehicleFilters): Promise<Vehicle[]> {

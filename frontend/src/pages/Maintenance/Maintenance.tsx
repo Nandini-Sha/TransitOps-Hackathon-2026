@@ -117,7 +117,7 @@ export default function Maintenance({ searchQuery = "" }: { searchQuery?: string
 
           <div className="space-y-1">
             <label className="text-xs font-semibold uppercase text-slate-600 dark:text-slate-400">
-              Service Typ
+              Service Type
             </label>
             <input
               type="text"
@@ -159,7 +159,7 @@ export default function Maintenance({ searchQuery = "" }: { searchQuery?: string
 
           <div className="space-y-1">
             <label className="text-xs font-semibold uppercase text-slate-600 dark:text-slate-400">
-              Statu
+              Status
             </label>
             <input
               type="text"
@@ -204,7 +204,7 @@ export default function Maintenance({ searchQuery = "" }: { searchQuery?: string
       {/* Right Column: Table */}
       <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-[#111111]">
         <h2 className="mb-6 font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-          SERVICE LO
+          SERVICE LOG
         </h2>
         
         {error ? (

@@ -19,6 +19,11 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     return;
   }
 
+  if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2003") {
+    res.status(409).json({ error: "Cannot delete: this record is referenced by other data" });
+    return;
+  }
+
   console.error(err);
   res.status(500).json({ error: "Internal server error" });
 };

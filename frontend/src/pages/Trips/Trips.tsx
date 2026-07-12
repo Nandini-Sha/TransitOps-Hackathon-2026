@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getVehicles, type Vehicle } from "../../lib/vehicles";
+import { VehicleStatus } from "../../lib/enums";
 import { getAvailableDrivers, type Driver } from "../../lib/drivers";
 import {
   getTrips,
@@ -45,7 +46,7 @@ export default function Trips({ searchQuery = "" }: { searchQuery?: string }) {
     setLoading(true);
     Promise.all([
       getTrips(searchQuery),
-      getVehicles({ status: "AVAILABLE" }),
+      getVehicles({ status: VehicleStatus.AVAILABLE }),
       getAvailableDrivers(),
     ])
       .then(([tripsData, vehiclesData, driversData]) => {
