@@ -1,76 +1,179 @@
-# TransitOps — Smart Transport Operations Platform
+# TransitOps – Smart Transport Operations Platform
 
-Fleet, driver, dispatch, maintenance, fuel/expense management platform. Odoo Hackathon 2026.
+A comprehensive fleet, driver, dispatch, maintenance, and fuel/expense management platform built for the Odoo Hackathon 2026. Designed with React, Node.js, and PostgreSQL.
 
-**Stack**: Node.js + Express + TypeScript + Prisma (backend) · React + Vite + TypeScript + Tailwind (frontend) · PostgreSQL 16 · Docker Compose
+---
 
-## Setup
+## 🔧 Tech Stack
+![React](https://img.shields.io/badge/React-18-blue?logo=react)
+![Node.js](https://img.shields.io/badge/Node.js-18-green?logo=node.js)
+![Express](https://img.shields.io/badge/Express.js-black?logo=express)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?logo=postgresql)
+![Prisma](https://img.shields.io/badge/Prisma-ORM-blue?logo=prisma)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?logo=tailwind-css)
 
-```bash
-cp .env.example .env
-docker compose up --build
-docker compose exec app sh -c "cd backend && npx prisma migrate dev"
-docker compose exec app sh -c "cd backend && npx prisma db seed"
-```
+- **Frontend**: React.js, Tailwind CSS, TypeScript, Vite
+- **Backend**: Node.js, Express.js, TypeScript
+- **Database**: PostgreSQL (with Prisma ORM)
+- **Other Tools**: Docker Compose, Zod, PDFKit, Recharts
 
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:4000 (health check: `/health`)
-- Postgres: localhost:5432 (credentials in `.env`)
+---
 
-Backend and frontend run as two hot-reloading processes inside the same `app` container — edit `backend/src` or `frontend/src` on host, changes reflect immediately. Rebuild (`docker compose up --build`) only after changing a `package.json`. `node_modules` for both live in named Docker volumes, not bind-mounted from host.
+## 🚀 Features
 
-## Demo logins
+### 🏢 Fleet & Maintenance (Fleet Manager)
+- Manage vehicle fleet (CRUD operations, retire vehicles).
+- Track maintenance records and schedule services.
+- Real-time vehicle status tracking (`Available`, `On Trip`, `In Shop`).
 
-All seeded users share the password `password123`. Each role sees a different set of tabs (RBAC-enforced both frontend and backend):
+### 🚚 Dispatch & Trips (Driver / Dispatcher)
+- Browse and track active/pending trips.
+- Manage trip lifecycle (`Draft` → `Dispatched` → `Completed/Cancelled`).
+- Auto-validation for cargo weight vs capacity.
 
-| Role | Email | Tabs |
-|---|---|---|
-| Fleet Manager | `fleet.manager@transitops.demo` | Fleet, Maintenance |
-| Driver / Dispatcher | `driver@transitops.demo` | Dashboard, Trips |
-| Safety Officer | `safety.officer@transitops.demo` | Drivers, Compliance |
-| Financial Analyst | `finance@transitops.demo` | Fuel & Expenses, Analytics |
+### 🛡️ Safety & Compliance (Safety Officer)
+- Monitor driver compliance and safety scores.
+- Flag expiring licenses and suspend/reinstate drivers.
 
-## Features
+### 💰 Financials & Analytics (Financial Analyst)
+- Log fuel usage and track standalone expenses (tolls, misc).
+- View operational costs, fleet utilization, and ROI charts.
+- Export reports to CSV and PDF.
 
-- **Auth**: email/password, JWT in an httpOnly cookie, RBAC on every route and every UI tab.
-- **Dashboard**: KPIs (active/available/maintenance vehicles, active/pending trips, drivers on duty, fleet utilization %), filters, recent-trips board.
-- **Fleet**: vehicle CRUD, search/sort, retire. Status (`Available`/`On Trip`/`In Shop`/`Retired`) is derived only — it changes automatically via trip dispatch/completion and maintenance records, never by manual edit.
-- **Drivers**: driver CRUD, search/sort, suspend/reinstate.
-- **Compliance**: flags expired/expiring-soon licenses and low safety scores; one-click suspend.
-- **Trips**: create (cargo-vs-capacity validated), dispatch, complete, cancel — full `Draft → Dispatched → Completed/Cancelled` lifecycle with automatic vehicle/driver status transitions.
-- **Maintenance**: log a service record on an available vehicle (auto → `In Shop`); mark complete (auto → `Available`, unless retired).
-- **Fuel & Expenses**: standalone fuel logs and toll/misc expenses, auto-computed operational cost.
-- **Analytics**: fuel efficiency, fleet utilization, operational cost, vehicle ROI — with charts and CSV/PDF export per report.
-- **Settings**: depot/currency/unit preferences (local, Fleet Manager only) and a static RBAC reference table.
+### ⚙️ Platform Core
+- Role-Based Access Control (RBAC) enforced on both frontend and backend routes.
+- Automatic status transitions via database transactions.
+- Hot-reloading Docker development environment.
 
-## Business rules enforced
+---
 
-- Vehicle registration number is unique; retired/in-shop vehicles are excluded from trip dispatch.
-- Drivers with expired licenses or `SUSPENDED` status cannot be dispatched.
-- A vehicle or driver already `ON_TRIP` cannot be assigned to another trip.
-- Cargo weight cannot exceed the vehicle's max load capacity.
-- Dispatch/complete/cancel and maintenance create/complete all drive status transitions automatically and atomically (DB transactions) — nothing sets status directly.
-
-## Structure
-
+## 📁 Folder Structure
 ```
 transitops/
-├── docker-compose.yml       # db + app services
-├── Dockerfile.dev           # single dev image, runs backend+frontend together
-├── .env.example             # copy to .env before running
+├── docker-compose.yml       # DB and App services configuration
+├── Dockerfile.dev           # Single dev image for backend + frontend
+├── .env.example             # Environment variables template
 ├── backend/
-│   ├── prisma/schema.prisma
+│   ├── prisma/
+│   │   ├── schema.prisma    # Database schema
+│   │   └── seed.ts          # Seed data with demo users
 │   ├── src/
 │   │   ├── index.ts         # Express entrypoint
-│   │   ├── modules/         # auth, vehicles, drivers, trips, maintenance, fuel, expenses, reports, dashboard
+│   │   ├── modules/         # auth, vehicles, drivers, trips, maintenance, etc.
 │   │   ├── middleware/      # auth, rbac, error-handler
 │   │   └── utils/           # csv/pdf export helpers
 │   └── package.json
 └── frontend/
     ├── src/
-    │   ├── main.tsx, App.tsx
-    │   ├── pages/            # Auth, Dashboard, Fleet, Drivers, Trips, Maintenance, Financials, Settings
-    │   ├── components/ui/    # shared Modal, FormField, Button, StatusBadge, KpiCard, SearchInput, AsyncState
-    │   └── lib/               # one API client module per domain
+    │   ├── main.tsx
+    │   ├── App.tsx
+    │   ├── pages/           # Auth, Dashboard, Fleet, Drivers, Trips, etc.
+    │   ├── components/ui/   # Shared UI components
+    │   └── lib/             # API client modules
+    ├── vite.config.ts
     └── package.json
 ```
+
+---
+
+## 🛠️ Setup Instructions
+
+### 📦 Prerequisites & Environment
+Ensure you have Docker and Docker Compose installed.
+
+```bash
+# Copy the environment file
+cp .env.example .env
+```
+
+### 🚀 Running with Docker
+The platform runs backend and frontend as hot-reloading processes inside a single container.
+
+```bash
+# Build and start the containers
+docker compose up --build
+
+# Run database migrations
+docker compose exec app sh -c "cd backend && npx prisma migrate dev"
+
+# Seed the database with demo users
+docker compose exec app sh -c "cd backend && npx prisma db seed"
+```
+
+### 🌐 Accessing the App
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:4000
+- **Postgres**: localhost:5432 (credentials in `.env`)
+
+### 🔑 Demo Logins
+All seeded users share the password `password123`.
+
+| Role | Email |
+|---|---|
+| Fleet Manager | `fleet.manager@transitops.demo` |
+| Driver / Dispatcher | `driver@transitops.demo` |
+| Safety Officer | `safety.officer@transitops.demo` |
+| Financial Analyst | `finance@transitops.demo` |
+
+---
+
+## 🎨 UI / UX Designs
+
+A quick visual walkthrough of the **TransitOps Platform** application.
+
+### 🔐 Authentication
+| Signup | Login |
+|------------|------------|
+| ![Signup](./docs/Signup-Dark.png) | ![Login](./docs/Signin-Light.png) |
+
+---
+
+### 🏠 Dashboard & Trips
+| Dashboard | Active Trips |
+|------------------|------------|
+| ![Dashboard](./docs/Dashboard-Dark.png) | ![Trip List](./docs/Trips-Light.png) |
+
+---
+
+### 🚚 Fleet & Maintenance
+| Fleet Management | Maintenance |
+|------------------|------------|
+| ![Fleet List](./docs/Fleet-Dark.png) | ![Maintenance](./docs/Maintenance-Light.png) |
+
+---
+
+### 🛡️ Drivers & Compliance
+| Drivers | Compliance |
+|------------|------------|
+| ![Drivers](./docs/Drivers-Dark.png) | ![Compliance](./docs/Compliance-Light.png) |
+
+---
+
+### 💰 Analytics & Fuel
+| Financial Reports | Fuel Management |
+|------------|------------|
+| ![Analytics](./docs/Analytics-Dark.png) | ![Fuel](./docs/Fuel-Light.png) |
+
+---
+
+### ⚙️ Settings
+| Settings (Dark) | Settings (Light) |
+|------------|------------|
+| ![Settings Dark](./docs/Settings-Dark.png) | ![Settings Light](./docs/Settings-Light.png) |
+
+---
+
+## 📌 Future Enhancements
+
+- Add real-time GPS tracking for active trips.
+- Automated email/SMS alerts for upcoming maintenance.
+- Dedicated mobile application for drivers.
+- Advanced AI-based route optimization.
+
+## 🧑💻 Author
+
+- **Nandini** – [GitHub Profile](https://github.com/Nandini-Sha)
+  
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
