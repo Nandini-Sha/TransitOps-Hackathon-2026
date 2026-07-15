@@ -131,7 +131,7 @@ A quick visual walkthrough of the **TransitOps Platform** application.
 ### 🏠 Dashboard & Trips
 | Dashboard | Active Trips |
 |------------------|------------|
-| ![Dashboard](./docs/Dashboard-Dark.png) | ![Trip List](./docs/Trips-Light.png) |
+| ![Dashboard](./docs/Dashboard-Light.png) | ![Trip List](./docs/Trips-Dark.png) |
 
 ---
 
@@ -145,7 +145,7 @@ A quick visual walkthrough of the **TransitOps Platform** application.
 ### 🛡️ Drivers & Compliance
 | Drivers | Compliance |
 |------------|------------|
-| ![Drivers](./docs/Drivers-Dark.png) | ![Compliance](./docs/Compliance-Light.png) |
+| ![Drivers](./docs/Drivers-Light.png) | ![Compliance](./docs/Compliance-Dark.png) |
 
 ---
 
@@ -159,7 +159,7 @@ A quick visual walkthrough of the **TransitOps Platform** application.
 ### ⚙️ Settings
 | Settings (Dark) | Settings (Light) |
 |------------|------------|
-| ![Settings Dark](./docs/Settings-Dark.png) | ![Settings Light](./docs/Settings-Light.png) |
+| ![Settings Dark](./docs/Settings-Light.png) | ![Settings Light](./docs/Settings-Dark.png) |
 
 ---
 
