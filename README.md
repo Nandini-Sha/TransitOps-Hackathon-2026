@@ -173,6 +173,7 @@ A quick visual walkthrough of the **TransitOps Platform** application.
 ## 🧑💻 Author
 
 - **Nandini** – [GitHub Profile](https://github.com/Nandini-Sha)
+- **Ved Patel** = [GitHub Profile](https://github.com/Veddp28)
   
 ## 📄 License
 
