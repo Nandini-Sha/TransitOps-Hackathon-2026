@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36">
+  <defs>
+    <pattern id="diagonalHatch" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(45)">
+      <rect x="0" y="0" width="1" height="4" fill="#d39b39"/>
+    </pattern>
+  </defs>
+  <rect x="0.5" y="0.5" width="35" height="35" rx="3" fill="url(#diagonalHatch)" stroke="rgba(180, 83, 9, 0.6)" stroke-width="1" />
+</svg>
