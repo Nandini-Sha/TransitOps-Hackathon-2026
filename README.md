@@ -2,6 +2,8 @@
 
 A comprehensive fleet, driver, dispatch, maintenance, and fuel/expense management platform built for the Odoo Hackathon 2026. Designed with React, Node.js, and PostgreSQL.
 
+**🌍 Live Demo:** [https://transitops-mu-six.vercel.app/](https://transitops-mu-six.vercel.app/)
+
 ---
 
 ## 🔧 Tech Stack
@@ -44,6 +46,11 @@ A comprehensive fleet, driver, dispatch, maintenance, and fuel/expense managemen
 - Role-Based Access Control (RBAC) enforced on both frontend and backend routes.
 - Automatic status transitions via database transactions.
 - Hot-reloading Docker development environment.
+
+### 🌐 Full-Stack Integration (Final Update)
+- Replaced hardcoded mock data across all modules with real API integrations.
+- Connected the Dashboard, Fleet, Maintenance, Trips, and Expenses pages to their respective backend endpoints.
+- Ensured data consistency across all 4 role-based views.
 
 ---
 
